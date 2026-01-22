@@ -12,9 +12,6 @@ from pathlib import Path
 
 from patchright.sync_api import BrowserContext, Page
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent))
-
 from browser_utils import StealthUtils
 
 

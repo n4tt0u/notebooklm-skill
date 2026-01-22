@@ -21,9 +21,6 @@ from typing import Optional, Dict, Any
 
 from patchright.sync_api import sync_playwright, BrowserContext
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent))
-
 from config import BROWSER_STATE_DIR, STATE_FILE, AUTH_INFO_FILE, DATA_DIR
 from browser_utils import BrowserFactory
 

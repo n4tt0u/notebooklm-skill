@@ -10,6 +10,22 @@ import subprocess
 from pathlib import Path
 
 
+def setup_console_utf8():
+    """Set console to UTF-8 mode on Windows using Windows API"""
+    if os.name != 'nt':
+        return
+
+    try:
+        import ctypes
+        # Set console output code page to UTF-8 (65001)
+        ctypes.windll.kernel32.SetConsoleOutputCP(65001)
+        # Set console input code page to UTF-8 (65001)
+        ctypes.windll.kernel32.SetConsoleCP(65001)
+    except Exception:
+        # Fallback: ignore if Windows API is not available
+        pass
+
+
 def get_venv_python():
     """Get the virtual environment Python executable"""
     skill_dir = Path(__file__).parent.parent
@@ -47,6 +63,9 @@ def ensure_venv():
 
 def main():
     """Main runner"""
+    # Set console to UTF-8 mode on Windows
+    setup_console_utf8()
+
     if len(sys.argv) < 2:
         print("Usage: python run.py <script_name> [args...]")
         print("\nAvailable scripts:")

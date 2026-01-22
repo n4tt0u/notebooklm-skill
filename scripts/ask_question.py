@@ -17,24 +17,16 @@ from pathlib import Path
 
 from patchright.sync_api import sync_playwright
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent))
-
 from auth_manager import AuthManager
 from notebook_manager import NotebookLibrary
-from config import QUERY_INPUT_SELECTORS, RESPONSE_SELECTORS
+from config import (
+    QUERY_INPUT_SELECTORS,
+    RESPONSE_SELECTORS,
+    FOLLOW_UP_REMINDER,
+)
 from browser_utils import BrowserFactory, StealthUtils
 
 
-# Follow-up reminder (adapted from MCP server for stateless operation)
-# Since we don't have persistent sessions, we encourage comprehensive questions
-FOLLOW_UP_REMINDER = (
-    "\n\nEXTREMELY IMPORTANT: Is that ALL you need to know? "
-    "You can always ask another question! Think about it carefully: "
-    "before you reply to the user, review their original request and this answer. "
-    "If anything is still unclear or missing, ask me another comprehensive question "
-    "that includes all necessary context (since each question opens a new browser session)."
-)
 
 
 def ask_notebooklm(question: str, notebook_url: str, headless: bool = True) -> str:
