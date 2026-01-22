@@ -12,14 +12,34 @@ from pathlib import Path
 
 
 def setup_console_utf8():
-    """Set console to UTF-8 mode on Windows using Windows API"""
+    """
+    Set console to UTF-8 mode on Windows.
+    This configures both the current process and subprocesses.
+    """
     if os.name != 'nt':
         return
 
     try:
         import ctypes
+        import io
+
+        # Set console code page to UTF-8 (CP 65001)
         ctypes.windll.kernel32.SetConsoleOutputCP(65001)
         ctypes.windll.kernel32.SetConsoleCP(65001)
+
+        # Reconfigure stdout/stderr to use UTF-8
+        if hasattr(sys.stdout, 'buffer'):
+            sys.stdout = io.TextIOWrapper(
+                sys.stdout.buffer, encoding='utf-8', errors='replace'
+            )
+        if hasattr(sys.stderr, 'buffer'):
+            sys.stderr = io.TextIOWrapper(
+                sys.stderr.buffer, encoding='utf-8', errors='replace'
+            )
+
+        # Set environment variable for subprocesses
+        os.environ['PYTHONIOENCODING'] = 'utf-8'
+
     except Exception:
         pass
 
@@ -133,8 +153,10 @@ def main():
 
     # Run the script
     cmd = [str(env.venv_python), str(script_path)] + script_args
+    # Environment variables (PYTHONIOENCODING already set by setup_console_utf8)
+    env_vars = os.environ.copy()
     try:
-        result = subprocess.run(cmd)
+        result = subprocess.run(cmd, env=env_vars)
         sys.exit(result.returncode)
     except KeyboardInterrupt:
         print("\n⚠️ Interrupted by user")
