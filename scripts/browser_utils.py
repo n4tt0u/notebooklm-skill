@@ -47,7 +47,7 @@ class BrowserFactory:
         """Inject cookies from state.json if available"""
         if STATE_FILE.exists():
             try:
-                with open(STATE_FILE, 'r') as f:
+                with open(STATE_FILE, 'r', encoding='utf-8') as f:
                     state = json.load(f)
                     if 'cookies' in state and len(state['cookies']) > 0:
                         context.add_cookies(state['cookies'])

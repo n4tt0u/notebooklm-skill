@@ -68,7 +68,7 @@ class AuthManager:
 
         if self.auth_info_file.exists():
             try:
-                with open(self.auth_info_file, 'r') as f:
+                with open(self.auth_info_file, 'r', encoding='utf-8') as f:
                     saved_info = json.load(f)
                     info.update(saved_info)
             except Exception:
@@ -171,7 +171,7 @@ class AuthManager:
                 'authenticated_at': time.time(),
                 'authenticated_at_iso': time.strftime('%Y-%m-%d %H:%M:%S')
             }
-            with open(self.auth_info_file, 'w') as f:
+            with open(self.auth_info_file, 'w', encoding='utf-8') as f:
                 json.dump(info, f, indent=2)
         except Exception:
             pass  # Non-critical

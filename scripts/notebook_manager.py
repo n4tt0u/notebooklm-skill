@@ -35,7 +35,7 @@ class NotebookLibrary:
         """Load library from disk"""
         if self.library_file.exists():
             try:
-                with open(self.library_file, 'r') as f:
+                with open(self.library_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     self.notebooks = data.get('notebooks', {})
                     self.active_notebook_id = data.get('active_notebook_id')
@@ -55,7 +55,7 @@ class NotebookLibrary:
                 'active_notebook_id': self.active_notebook_id,
                 'updated_at': datetime.now().isoformat()
             }
-            with open(self.library_file, 'w') as f:
+            with open(self.library_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2)
         except Exception as e:
             print(f"❌ Error saving library: {e}")

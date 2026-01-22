@@ -55,7 +55,9 @@ class SkillEnvironment:
                     [str(self.venv_pip), "install", "--upgrade", "pip"],
                     check=True,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    encoding='utf-8',
+                    errors='replace'
                 )
 
                 # Install requirements
@@ -63,7 +65,9 @@ class SkillEnvironment:
                     [str(self.venv_pip), "install", "-r", str(self.requirements_file)],
                     check=True,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    encoding='utf-8',
+                    errors='replace'
                 )
                 print("✅ Dependencies installed")
 
@@ -76,7 +80,9 @@ class SkillEnvironment:
                         [str(self.venv_python), "-m", "patchright", "install", "chrome"],
                         check=True,
                         capture_output=True,
-                        text=True
+                        text=True,
+                        encoding='utf-8',
+                        errors='replace'
                     )
                     print("✅ Chrome installed")
                 except subprocess.CalledProcessError as e:
