@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 Universal runner for NotebookLM skill scripts
-Ensures all scripts run with the correct virtual environment
+Handles virtual environment setup and script execution
 """
 
 import os
 import sys
 import subprocess
+import venv
 from pathlib import Path
 
 
@@ -17,61 +18,92 @@ def setup_console_utf8():
 
     try:
         import ctypes
-        # Set console output code page to UTF-8 (65001)
         ctypes.windll.kernel32.SetConsoleOutputCP(65001)
-        # Set console input code page to UTF-8 (65001)
         ctypes.windll.kernel32.SetConsoleCP(65001)
     except Exception:
-        # Fallback: ignore if Windows API is not available
         pass
 
 
-def get_venv_python():
-    """Get the virtual environment Python executable"""
-    skill_dir = Path(__file__).parent.parent
-    venv_dir = skill_dir / ".venv"
+class SkillEnvironment:
+    """Manages skill-specific virtual environment"""
 
-    if os.name == 'nt':  # Windows
-        venv_python = venv_dir / "Scripts" / "python.exe"
-    else:  # Unix/Linux/Mac
-        venv_python = venv_dir / "bin" / "python"
+    def __init__(self):
+        self.skill_dir = Path(__file__).parent.parent
+        self.venv_dir = self.skill_dir / ".venv"
+        self.requirements_file = self.skill_dir / "requirements.txt"
 
-    return venv_python
+        if os.name == 'nt':
+            self.venv_python = self.venv_dir / "Scripts" / "python.exe"
+            self.venv_pip = self.venv_dir / "Scripts" / "pip.exe"
+        else:
+            self.venv_python = self.venv_dir / "bin" / "python"
+            self.venv_pip = self.venv_dir / "bin" / "pip"
 
+    def ensure_venv(self) -> bool:
+        """Ensure virtual environment exists and is set up"""
+        if self.venv_dir.exists():
+            return True
 
-def ensure_venv():
-    """Ensure virtual environment exists"""
-    skill_dir = Path(__file__).parent.parent
-    venv_dir = skill_dir / ".venv"
-    setup_script = skill_dir / "scripts" / "setup_environment.py"
-
-    # Check if venv exists
-    if not venv_dir.exists():
         print("🔧 First-time setup: Creating virtual environment...")
         print("   This may take a minute...")
 
-        # Run setup with system Python
-        result = subprocess.run([sys.executable, str(setup_script)])
-        if result.returncode != 0:
-            print("❌ Failed to set up environment")
-            sys.exit(1)
+        # Create venv
+        print(f"🔧 Creating virtual environment in {self.venv_dir.name}/")
+        try:
+            venv.create(self.venv_dir, with_pip=True)
+            print("✅ Virtual environment created")
+        except Exception as e:
+            print(f"❌ Failed to create venv: {e}")
+            return False
 
-        print("✅ Environment ready!")
+        # Install dependencies
+        if self.requirements_file.exists():
+            print("📦 Installing dependencies...")
+            try:
+                subprocess.run(
+                    [str(self.venv_pip), "install", "--upgrade", "pip"],
+                    check=True, capture_output=True, text=True,
+                    encoding='utf-8', errors='replace'
+                )
 
-    return get_venv_python()
+                subprocess.run(
+                    [str(self.venv_pip), "install", "-r", str(self.requirements_file)],
+                    check=True, capture_output=True, text=True,
+                    encoding='utf-8', errors='replace'
+                )
+                print("✅ Dependencies installed")
+
+                # Install Chrome for Patchright
+                print("🌐 Installing Google Chrome for Patchright...")
+                try:
+                    subprocess.run(
+                        [str(self.venv_python), "-m", "patchright", "install", "chrome"],
+                        check=True, capture_output=True, text=True,
+                        encoding='utf-8', errors='replace'
+                    )
+                    print("✅ Chrome installed")
+                except subprocess.CalledProcessError:
+                    print("⚠️ Chrome install failed. Run manually: python -m patchright install chrome")
+
+            except subprocess.CalledProcessError as e:
+                print(f"❌ Failed to install dependencies: {e}")
+                return False
+
+        print("\n✅ Environment ready!")
+        print(f"   Virtual env: {self.venv_dir}")
+        print(f"   Python: {self.venv_python}")
+        return True
 
 
 def main():
     """Main runner"""
-    # Set console to UTF-8 mode on Windows
     setup_console_utf8()
 
     if len(sys.argv) < 2:
         print("Usage: python run.py <script_name> [args...]")
         print("\nAvailable scripts:")
-        print("  ask_question.py    - Query NotebookLM")
+        print("  ask_question.py     - Query NotebookLM")
         print("  notebook_manager.py - Manage notebook library")
-        print("  session_manager.py  - Manage sessions")
         print("  auth_manager.py     - Handle authentication")
         print("  cleanup_manager.py  - Clean up skill data")
         sys.exit(1)
@@ -79,33 +111,28 @@ def main():
     script_name = sys.argv[1]
     script_args = sys.argv[2:]
 
-    # Handle both "scripts/script.py" and "script.py" formats
+    # Handle "scripts/script.py" format
     if script_name.startswith('scripts/'):
-        # Remove the scripts/ prefix if provided
-        script_name = script_name[8:]  # len('scripts/') = 8
+        script_name = script_name[8:]
 
-    # Ensure .py extension
     if not script_name.endswith('.py'):
         script_name += '.py'
 
-    # Get script path
-    skill_dir = Path(__file__).parent.parent
-    script_path = skill_dir / "scripts" / script_name
+    # Get paths
+    env = SkillEnvironment()
+    script_path = env.skill_dir / "scripts" / script_name
 
     if not script_path.exists():
         print(f"❌ Script not found: {script_name}")
-        print(f"   Working directory: {Path.cwd()}")
-        print(f"   Skill directory: {skill_dir}")
-        print(f"   Looked for: {script_path}")
         sys.exit(1)
 
-    # Ensure venv exists and get Python executable
-    venv_python = ensure_venv()
-
-    # Build command
-    cmd = [str(venv_python), str(script_path)] + script_args
+    # Ensure venv exists
+    if not env.ensure_venv():
+        print("❌ Failed to set up environment")
+        sys.exit(1)
 
     # Run the script
+    cmd = [str(env.venv_python), str(script_path)] + script_args
     try:
         result = subprocess.run(cmd)
         sys.exit(result.returncode)
