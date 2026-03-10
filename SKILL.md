@@ -1,17 +1,31 @@
 ---
 name: notebooklm
-description: Query your Google NotebookLM notebooks from Claude Code. Source-grounded answers from Gemini with minimal hallucinations.
+description: |
+  Query Google NotebookLM for document-grounded answers with minimal hallucinations.
+  Use this skill whenever the user asks about documents, knowledge bases, research notes,
+  or mentions NotebookLM. Even if they don't explicitly say "NotebookLM", trigger this
+  skill when they want to search their notes, query uploaded documents, or get answers
+  from their personal knowledge base. Phrases like "check my docs", "search my notes",
+  "what does my documentation say", or "ask my knowledge base" should all trigger this skill.
 ---
 
 # NotebookLM Skill
 
-Query NotebookLM for document-based answers. Each question opens a browser, gets the answer, and closes.
+Query NotebookLM for document-based answers with source grounding. Each question opens a browser, gets the answer, and closes.
+
+## First-Time Setup
+
+The skill automatically creates a virtual environment and installs dependencies on first use. Just run any command and it will set itself up.
 
 ## When to Use
 
-- User mentions NotebookLM or shares URL (`https://notebooklm.google.com/notebook/...`)
-- User asks to query notebooks/documentation
-- Phrases like "ask my NotebookLM", "check my docs"
+Trigger this skill when:
+- User mentions **NotebookLM** or shares a NotebookLM URL (`https://notebooklm.google.com/notebook/...`)
+- User asks to query their **documents**, **notes**, or **knowledge base**
+- Phrases like: "check my docs", "search my notes", "what do my documents say"
+- User wants **source-grounded answers** without hallucinations
+- User references **uploaded PDFs** or **research materials**
+- User wants to search their **personal library** of documents
 
 ## Critical: Always Use run.py
 
@@ -76,13 +90,14 @@ python scripts/run.py ask_question.py --question "..." --show-browser
 
 ## Follow-Up Behavior
 
-Every answer ends with: **"Is that ALL you need to know?"**
+Every answer includes a reminder to consider follow-up questions.
 
-**Required:** Before responding to user:
+**Before responding to user:**
 
-1. STOP - Analyze if answer is complete
-2. If gaps exist, ask follow-up questions
-3. Synthesize all answers before responding
+1. **STOP** - Analyze if the answer fully addresses the user's request
+2. **Check for gaps** - Are there related aspects not covered?
+3. **Ask follow-up if needed** - Each question opens a new browser session, so include all context in follow-up questions
+4. **Synthesize** - Combine multiple answers before responding to user
 
 ## Script Reference
 
@@ -97,10 +112,11 @@ Every answer ends with: **"Is that ALL you need to know?"**
 
 | Problem | Solution |
 |---------|----------|
-| ModuleNotFoundError | Use `run.py` wrapper |
-| Authentication fails | Browser must be visible for setup |
+| `ModuleNotFoundError` | Always use `run.py` wrapper: `python scripts/run.py <script>` |
+| Authentication fails | Run `auth_manager.py setup` with visible browser |
 | Rate limit (50/day) | Wait or switch Google account |
-| Browser crashes | `cleanup_manager.py --preserve-library` |
+| Browser crashes | Run `cleanup_manager.py --preserve-library` |
+| First run is slow | Normal - virtual environment setup takes ~1 minute |
 
 ## Data Storage
 
