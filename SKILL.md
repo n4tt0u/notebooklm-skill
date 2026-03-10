@@ -15,7 +15,7 @@ Query NotebookLM for document-based answers. Each question opens a browser, gets
 
 ## Critical: Always Use run.py
 
-```bash
+```shell
 # ✅ CORRECT:
 python scripts/run.py auth_manager.py status
 python scripts/run.py ask_question.py --question "..."
@@ -28,13 +28,13 @@ python scripts/auth_manager.py status  # Fails!
 
 ### 1. Check Authentication
 
-```bash
+```shell
 python scripts/run.py auth_manager.py status
 ```
 
 ### 2. Authenticate (One-Time)
 
-```bash
+```shell
 python scripts/run.py auth_manager.py setup
 ```
 
@@ -42,7 +42,7 @@ Browser opens for manual Google login.
 
 ### 3. Manage Notebooks
 
-```bash
+```shell
 # List notebooks
 python scripts/run.py notebook_manager.py list
 
@@ -60,7 +60,7 @@ python scripts/run.py notebook_manager.py search --query "keyword"
 
 ### 4. Ask Questions
 
-```bash
+```shell
 # Basic (uses active notebook)
 python scripts/run.py ask_question.py --question "Your question"
 
